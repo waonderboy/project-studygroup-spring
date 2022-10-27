@@ -1,6 +1,5 @@
 package com.practice.studygroup.controller;
 
-import com.practice.studygroup.ConsoleMailSender;
 import com.practice.studygroup.FormDataEncoder;
 import com.practice.studygroup.config.SecurityConfig;
 import com.practice.studygroup.domain.UserAccount;
@@ -16,14 +15,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.mail.internet.MimeMessage;
+import java.util.UUID;
 
 import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -109,6 +109,61 @@ class UserAccountControllerTest {
 
     }
 
+    @DisplayName("[POST] -인증 메일 확인 실패")
+    @Test
+    void checkEmailToken_with_wrong_input() throws Exception {
+        // Given
+        String email = "kkkkk@naver.com";
+        String token = "This Is Plain Text";
+        UserAccountDto dto = UserAccountDto.builder().email(email).build();
+        given(userAccountService.isNotCorrectTokenAndSignUp(email, token)).willReturn(true);
+        given(userAccountService.loginAfterSignUp(email)).willReturn(dto);
+
+        // When
+        mockMvc.perform(get("/check-email-token")
+                        .param("token", token)
+                        .param("email", email))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"))
+                .andExpect(view().name("account/checked-email"))
+                .andExpect(unauthenticated());
+
+        // Then
+        then(userAccountService).should().isNotCorrectTokenAndSignUp(email, token);
+
+    }
+
+
+    @DisplayName("[POST] -인증 메일 확인 성공")
+    @WithMockUser
+    @Test
+    void checkEmailToken() throws Exception {
+        // Given
+        String email = "kkkkk@naver.com";
+        String token = UUID.randomUUID().toString();
+        String nick = "user";
+        UserAccountDto dto = UserAccountDto.builder()
+                .email(email)
+                .nickname(nick)
+                .build();
+        given(userAccountService.isNotCorrectTokenAndSignUp(email, token)).willReturn(false);
+        given(userAccountService.loginAfterSignUp(email)).willReturn(dto);
+
+        // When
+        mockMvc.perform(get("/check-email-token")
+                        .param("token", token)
+                        .param("email", email))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeDoesNotExist("error"))
+                .andExpect(model().attributeExists("nickname"))
+                .andExpect(view().name("account/checked-email"))
+                .andExpect(authenticated().withUsername(nick));
+
+        // Then
+        then(userAccountService).should().isNotCorrectTokenAndSignUp(email, token);
+        then(userAccountService).should().loginAfterSignUp(email);
+    }
+
     private SignUpForm createNormalSignUpForm() {
         return SignUpForm.of("normal@naver.com", "kimkim", "asdfa!@#");
     }
@@ -116,4 +171,5 @@ class UserAccountControllerTest {
     private SignUpForm createAbnormalSignUpForm() {
         return SignUpForm.of("normal@naver.com", "ki", "asdfa!@#");
     }
+
 }
