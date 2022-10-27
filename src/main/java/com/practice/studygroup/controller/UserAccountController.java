@@ -1,7 +1,10 @@
 package com.practice.studygroup.controller;
 
 
+import com.practice.studygroup.domain.UserAccount;
+import com.practice.studygroup.dto.UserAccountDto;
 import com.practice.studygroup.dto.request.SignUpForm;
+import com.practice.studygroup.repository.UserAccountRepository;
 import com.practice.studygroup.service.UserAccountService;
 import com.practice.studygroup.validator.SignUpFormValidator;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
+import java.util.Optional;
+
 
 @Controller
 @RequiredArgsConstructor
@@ -43,8 +48,23 @@ public class UserAccountController {
         }
 
         userAccountService.processNewUserAccount(signUpForm.toDto());
+        userAccountService.loginAfterSignUp(signUpForm.getEmail());
 
         return "redirect:/home";
+    }
+
+    @GetMapping("/check-email-token")
+    public String checkEmailToken(String token, String email, Model model) {
+        String checkedEmailView = "account/checked-email";
+
+        if (userAccountService.isNotCorrectTokenAndSignUp(email, token)) {
+            model.addAttribute("error", "wrong.email");
+            return checkedEmailView;
+        }
+
+        UserAccountDto userAccountDto = userAccountService.loginAfterSignUp(email);
+        model.addAttribute("nickname", userAccountDto.getNickname());
+        return checkedEmailView;
     }
 
 

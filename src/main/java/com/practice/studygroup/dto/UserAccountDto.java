@@ -3,21 +3,37 @@ package com.practice.studygroup.dto;
 
 import com.practice.studygroup.domain.UserAccount;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Collection;
 
 @EqualsAndHashCode(of = "email")
-@Getter @Setter @Builder
+@Getter @Builder
 @AllArgsConstructor
-public class UserAccountDto {
+@NoArgsConstructor
+public class UserAccountDto{
     private String email;
     private String password;
     private String nickname;
 
 
-    public UserAccount toEntity() {
+    public UserAccount toEntity(PasswordEncoder passwordEncoder) {
         return UserAccount.builder()
                 .email(email)
-                .password(password)
+                .password(passwordEncoder.encode(password))
                 .nickname(nickname)
                 .build();
     }
+
+    public static UserAccountDto from(UserAccount entity) {
+        return UserAccountDto.builder()
+                .email(entity.getEmail())
+                .password(entity.getPassword())
+                .nickname(entity.getNickname())
+                .build();
+    }
+
+
 }
