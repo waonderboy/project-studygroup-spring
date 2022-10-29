@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Header template</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<body>
+<header class="p-3 text-bg-dark">
+    <div class="container flex" >
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start inline-block" >
+            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"/></svg>
+            </a>
+
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><a id="home" href="#" th:href="@{/}" class="nav-link px-2 text-secondary">Home</a></li>
+            </ul>
+
+            <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
+                <input type="search" class="form-control form-control-dark text-bg-dark" placeholder="Search..." aria-label="Search">
+            </form>
+
+            <ul class="nav justify-content-end">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/notification}">
+                        <i class="fa fa-bell-o" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link btn btn-outline-light me-2" th:href="@{/notification}"><i class="fa fa-plus" aria-hidden="true"> 스터디 개설</i></a>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" th:href="@{/sign-in}">Login</a>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" th:href="@{/sign-up}">SignUp</a>
+                </li>
+
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <div class="dropdown"  sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" href="#" id="userDropdown" role="button" data-toggle="dropdown"
+                           aria-haspopup="true" aria-expanded="false">
+                            <svg data-jdenticon-value="user127" th:data-jenditcon-value="${#authentication.name}" width="24" height="24" class="rounded border bg-light">
+                                프로필
+                            </svg>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                            <li><a class="dropdown-item" th:href="@{'/profile/' + ${#authentication.name}}">프로필</a></li>
+                            <li><a class="dropdown-item" href="#">스터디</a></li>
+                            <li><a class="dropdown-item"  href="#" th:href="@{'/settings/profile'}">설정</a></li>
+                            <form class="form-inline my-2 my-lg-0" action="#" th:action="@{/logout}" method="post">
+                                <button class="dropdown-item" type="submit">로그아웃</button>
+                            </form>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</header>
+
+</body>
+</html>
