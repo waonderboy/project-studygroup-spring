@@ -1,11 +1,11 @@
 package com.practice.studygroup.config;
 
-import com.practice.studygroup.config.auth.CommonAuthenticationProvider;
+import com.practice.studygroup.security.service.CommonUserDetailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,29 +14,31 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-//@EnableWebSecurity
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    //private final UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         return http
-                .authorizeRequests()
-                .mvcMatchers("/sign-up", "/home", "/check-email-token")
-                .permitAll()
-                .mvcMatchers(HttpMethod.POST, "/sign-up")
-                .permitAll()
-                .and()
+                .authorizeRequests(auth -> auth
+                    .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                    .mvcMatchers(
+                            "/sign-up",
+                            "/home"
+                    ).permitAll()
+                    .mvcMatchers(HttpMethod.POST, "/sign-up")
+                    .permitAll())
+                .formLogin()
+                    .loginPage("/sign-in")
+                    .permitAll()
+                    .and()
+                .logout()
+                    .logoutSuccessUrl("/")
+                    .and()
                 .build();
     }
-
-//    @Bean
-//    public AuthenticationProvider authenticationProvider() {
-//        return new CommonAuthenticationProvider(userDetailsService, passwordEncoder());
-//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

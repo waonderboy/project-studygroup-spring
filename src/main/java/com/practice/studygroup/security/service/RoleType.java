@@ -1,4 +1,4 @@
-package com.practice.studygroup.dto.security;
+package com.practice.studygroup.security.service;
 
 import lombok.Getter;
 

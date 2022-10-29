@@ -1,10 +1,9 @@
 package com.practice.studygroup.controller;
 
 
-import com.practice.studygroup.domain.UserAccount;
-import com.practice.studygroup.dto.UserAccountDto;
+import com.practice.studygroup.domain.CurrentUser;
 import com.practice.studygroup.dto.request.SignUpForm;
-import com.practice.studygroup.repository.UserAccountRepository;
+import com.practice.studygroup.security.service.CommonUserPrincipal;
 import com.practice.studygroup.service.UserAccountService;
 import com.practice.studygroup.validator.SignUpFormValidator;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
-import java.util.Optional;
 
 
 @Controller
@@ -50,21 +48,41 @@ public class UserAccountController {
         userAccountService.processNewUserAccount(signUpForm.toDto());
         userAccountService.loginAfterSignUp(signUpForm.getEmail());
 
-        return "redirect:/home";
+        return "redirect:/";
+    }
+
+    @GetMapping("/sign-in")
+    public String signIn() {
+        return "account/sign-in";
     }
 
     @GetMapping("/check-email-token")
     public String checkEmailToken(String token, String email, Model model) {
         String checkedEmailView = "account/checked-email";
 
-        if (userAccountService.isNotCorrectTokenAndSignUp(email, token)) {
-            model.addAttribute("error", "wrong.email");
+        if (userAccountService.isCorrectTokenAndSignUp(email, token)) {
+            CommonUserPrincipal commonUserPrincipal = userAccountService.loginAfterSignUp(email);
+            model.addAttribute("nickname", commonUserPrincipal.getNickname());
             return checkedEmailView;
         }
 
-        UserAccountDto userAccountDto = userAccountService.loginAfterSignUp(email);
-        model.addAttribute("nickname", userAccountDto.getNickname());
+        model.addAttribute("error", "wrong.email");
         return checkedEmailView;
+    }
+
+    @GetMapping("/resend-confirm-email")
+    public String resendConfirmEmail(@CurrentUser CommonUserPrincipal commonUserPrincipal, Model model) {
+
+        if(!userAccountService.canSendConfirmEmail(commonUserPrincipal)){
+            model.addAttribute("error", "이메일 인증은 1시간에 한번만 가능합니다.");
+            model.addAttribute("email", commonUserPrincipal.getEmail());
+            return  "account/checked-email";
+        }
+
+        // 재발급 가능
+        userAccountService.sendSignUpConfirmEmail(commonUserPrincipal.getEmail());
+
+        return "redirect:/";
     }
 
 

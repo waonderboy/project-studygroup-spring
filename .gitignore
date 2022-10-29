@@ -220,4 +220,7 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+### NPM ###
+src/main/resources/static/node_modules
+
 # End of https://www.toptal.com/developers/gitignore/api/java,macos,gradle,intellij+all,windows,visualstudiocode

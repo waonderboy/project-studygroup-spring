@@ -2,9 +2,9 @@ package com.practice.studygroup.controller;
 
 import com.practice.studygroup.FormDataEncoder;
 import com.practice.studygroup.config.SecurityConfig;
-import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
 import com.practice.studygroup.dto.request.SignUpForm;
+import com.practice.studygroup.security.CommonUserPrincipal;
 import com.practice.studygroup.repository.UserAccountRepository;
 import com.practice.studygroup.service.UserAccountService;
 import com.practice.studygroup.validator.SignUpFormValidator;
@@ -79,8 +79,8 @@ class UserAccountControllerTest {
                                 .with(csrf())
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/home"))
-                .andExpect(redirectedUrl("/home"));
+                .andExpect(view().name("redirect:/"))
+                .andExpect(redirectedUrl("/"));
 
         // Then
         then(userAccountService).should().processNewUserAccount(dto);
@@ -116,8 +116,8 @@ class UserAccountControllerTest {
         String email = "kkkkk@naver.com";
         String token = "This Is Plain Text";
         UserAccountDto dto = UserAccountDto.builder().email(email).build();
-        given(userAccountService.isNotCorrectTokenAndSignUp(email, token)).willReturn(true);
-        given(userAccountService.loginAfterSignUp(email)).willReturn(dto);
+        given(userAccountService.isCorrectTokenAndSignUp(email, token)).willReturn(false);
+        given(userAccountService.loginAfterSignUp(email)).willReturn(CommonUserPrincipal.from(dto));
 
         // When
         mockMvc.perform(get("/check-email-token")
@@ -129,7 +129,7 @@ class UserAccountControllerTest {
                 .andExpect(unauthenticated());
 
         // Then
-        then(userAccountService).should().isNotCorrectTokenAndSignUp(email, token);
+        then(userAccountService).should().isCorrectTokenAndSignUp(email, token);
 
     }
 
@@ -146,8 +146,8 @@ class UserAccountControllerTest {
                 .email(email)
                 .nickname(nick)
                 .build();
-        given(userAccountService.isNotCorrectTokenAndSignUp(email, token)).willReturn(false);
-        given(userAccountService.loginAfterSignUp(email)).willReturn(dto);
+        given(userAccountService.isCorrectTokenAndSignUp(email, token)).willReturn(true);
+        given(userAccountService.loginAfterSignUp(email)).willReturn(CommonUserPrincipal.from(dto));
 
         // When
         mockMvc.perform(get("/check-email-token")
@@ -160,7 +160,7 @@ class UserAccountControllerTest {
                 .andExpect(authenticated().withUsername(nick));
 
         // Then
-        then(userAccountService).should().isNotCorrectTokenAndSignUp(email, token);
+        then(userAccountService).should().isCorrectTokenAndSignUp(email, token);
         then(userAccountService).should().loginAfterSignUp(email);
     }
 
