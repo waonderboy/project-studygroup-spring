@@ -51,11 +51,6 @@ public class UserAccountController {
         return "redirect:/";
     }
 
-    @GetMapping("/sign-in")
-    public String signIn() {
-        return "account/sign-in";
-    }
-
     @GetMapping("/check-email-token")
     public String checkEmailToken(String token, String email, Model model) {
         String checkedEmailView = "account/checked-email";

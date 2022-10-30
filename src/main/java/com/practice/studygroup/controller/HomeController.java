@@ -15,4 +15,9 @@ public class HomeController {
         model.addAttribute("account", commonUserPrincipal);
         return "index";
     }
+
+    @GetMapping("/sign-in")
+    public String signIn() {
+        return "account/sign-in";
+    }
 }
