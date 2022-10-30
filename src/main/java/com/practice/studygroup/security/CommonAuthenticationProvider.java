@@ -1,6 +1,6 @@
 package com.practice.studygroup.security;
 
-import com.practice.studygroup.security.service.CommonUserPrincipal;
+import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

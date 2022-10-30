@@ -4,7 +4,7 @@ import com.practice.studygroup.FormDataEncoder;
 import com.practice.studygroup.config.SecurityConfig;
 import com.practice.studygroup.dto.UserAccountDto;
 import com.practice.studygroup.dto.request.SignUpForm;
-import com.practice.studygroup.security.CommonUserPrincipal;
+import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.repository.UserAccountRepository;
 import com.practice.studygroup.service.UserAccountService;
 import com.practice.studygroup.validator.SignUpFormValidator;

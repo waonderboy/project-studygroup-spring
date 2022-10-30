@@ -1,6 +1,6 @@
 package com.practice.studygroup.service;
 
-import com.practice.studygroup.security.service.CommonUserPrincipal;
+import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
 import com.practice.studygroup.repository.UserAccountRepository;
