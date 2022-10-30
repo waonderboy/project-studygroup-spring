@@ -2,6 +2,7 @@ package com.practice.studygroup.controller;
 
 import com.practice.studygroup.FormDataEncoder;
 import com.practice.studygroup.config.SecurityConfig;
+import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
 import com.practice.studygroup.dto.request.SignUpForm;
 import com.practice.studygroup.dto.security.CommonUserPrincipal;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -33,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * (given)condition_(when)behavior_(then)result
  * 준비_실행_검증 by BDD
  */
-@DisplayName("View 컨트롤러 - 회원가입")
+@DisplayName("유저 컨트롤러 - 회원가입")
 @Import({SecurityConfig.class, SignUpFormValidator.class, FormDataEncoder.class})
 @WebMvcTest
 class UserAccountControllerTest {
@@ -109,9 +111,9 @@ class UserAccountControllerTest {
 
     }
 
-    @DisplayName("[POST] -인증 메일 확인 실패")
+    @DisplayName("[GET] -인증 메일 확인 실패")
     @Test
-    void checkEmailToken_with_wrong_input() throws Exception {
+    void TokenAndEmail_RequestingCheckTokenAboutEmail_ReturnError() throws Exception {
         // Given
         String email = "kkkkk@naver.com";
         String token = "This Is Plain Text";
@@ -134,10 +136,10 @@ class UserAccountControllerTest {
     }
 
 
-    @DisplayName("[POST] -인증 메일 확인 성공")
+    @DisplayName("[GET] -인증 메일 확인 성공")
     @WithMockUser
     @Test
-    void checkEmailToken() throws Exception {
+    void TokenAndEmail_RequestingCheckTokenAboutEmail_ConfirmEmail() throws Exception {
         // Given
         String email = "kkkkk@naver.com";
         String token = UUID.randomUUID().toString();
@@ -163,6 +165,57 @@ class UserAccountControllerTest {
         then(userAccountService).should().isCorrectTokenAndSignUp(email, token);
         then(userAccountService).should().loginAfterSignUp(email);
     }
+
+    @DisplayName("[GET] - 인증 메일 재발송 성공")
+    @WithMockUser
+    @Test
+    void Nothing_RequestingResendEmailToken_ResendEmailToken() throws Exception {
+        // Given
+        CommonUserPrincipal principal = createCommonUserPrincipal();
+
+        given(userAccountService.canSendConfirmEmail(principal)).willReturn(true);
+        willDoNothing().given(userAccountService).sendSignUpConfirmEmail(principal.getEmail());
+
+        // When
+        mockMvc.perform(get("/resend-confirm-email")
+                        .with(user(principal)))
+                .andExpect(status().is3xxRedirection());
+
+        // Then
+        then(userAccountService).should().canSendConfirmEmail(principal);
+        then(userAccountService).should().sendSignUpConfirmEmail(principal.getEmail());
+    }
+
+    @DisplayName("[GET] - 인증 메일 재발송 실패")
+    @WithMockUser
+    @Test
+    void Nothing_RequestingResendEmailToken_DoNothing() throws Exception {
+        // Given
+        CommonUserPrincipal principal = createCommonUserPrincipal();
+
+        given(userAccountService.canSendConfirmEmail(principal)).willReturn(false);
+        willDoNothing().given(userAccountService).sendSignUpConfirmEmail(principal.getEmail());
+
+        // When
+        mockMvc.perform(get("/resend-confirm-email")
+                        .with(user(principal)))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attributeExists("email"));
+
+        // Then
+        then(userAccountService).should().canSendConfirmEmail(principal);
+    }
+
+
+    private static CommonUserPrincipal createCommonUserPrincipal() {
+        String email = "kkkkk@naver.com";
+        String token = UUID.randomUUID().toString();
+        String nick = "user";
+        CommonUserPrincipal principal = CommonUserPrincipal.builder().nickname(nick).email(email).build();
+        return principal;
+    }
+
 
     private SignUpForm createNormalSignUpForm() {
         return SignUpForm.of("normal@naver.com", "kimkim", "asdfa!@#");
