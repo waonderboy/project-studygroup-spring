@@ -39,6 +39,7 @@ public class UserAccount {
     private boolean emailVerified;
 
     private String emailCheckToken;
+    private LocalDateTime emailCheckTokenCreatedAt;
 
     private LocalDateTime createdAt;
 
@@ -55,6 +56,7 @@ public class UserAccount {
 
     public void generateEmailCheckToken() {
         this.emailCheckToken = UUID.randomUUID().toString();
+        this.emailCheckTokenCreatedAt = LocalDateTime.now();
     }
 
     public boolean completeSignUp() {
@@ -67,4 +69,7 @@ public class UserAccount {
         return this.emailCheckToken.equals(token);
     }
 
+    public boolean canResendToken() {
+        return emailCheckTokenCreatedAt.isBefore(LocalDateTime.now().minusMinutes(3));
+    }
 }

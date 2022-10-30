@@ -1,9 +1,9 @@
 package com.practice.studygroup.controller;
 
 
-import com.practice.studygroup.domain.CurrentUser;
 import com.practice.studygroup.dto.request.SignUpForm;
-import com.practice.studygroup.security.service.CommonUserPrincipal;
+import com.practice.studygroup.dto.security.CommonUserPrincipal;
+import com.practice.studygroup.dto.security.CurrentUser;
 import com.practice.studygroup.service.UserAccountService;
 import com.practice.studygroup.validator.SignUpFormValidator;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +74,7 @@ public class UserAccountController {
     public String resendConfirmEmail(@CurrentUser CommonUserPrincipal commonUserPrincipal, Model model) {
 
         if(!userAccountService.canSendConfirmEmail(commonUserPrincipal)){
-            model.addAttribute("error", "이메일 인증은 1시간에 한번만 가능합니다.");
+            model.addAttribute("error", "이메일 인증은 3분에 한번만 가능합니다.");
             model.addAttribute("email", commonUserPrincipal.getEmail());
             return  "account/checked-email";
         }
@@ -84,6 +84,7 @@ public class UserAccountController {
 
         return "redirect:/";
     }
+
 
 
 }

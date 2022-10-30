@@ -18,6 +18,8 @@ public class UserAccountDto{
     private String password;
     private String nickname;
 
+    private boolean emailVerified;
+
 
     public UserAccount toEntity(PasswordEncoder passwordEncoder) {
         return UserAccount.builder()

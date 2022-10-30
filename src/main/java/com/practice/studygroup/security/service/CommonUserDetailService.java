@@ -2,6 +2,7 @@ package com.practice.studygroup.security.service;
 
 import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
+import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.repository.UserAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

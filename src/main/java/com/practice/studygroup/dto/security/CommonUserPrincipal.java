@@ -2,6 +2,7 @@ package com.practice.studygroup.dto.security;
 
 import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
+import com.practice.studygroup.security.service.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,9 +23,11 @@ public class CommonUserPrincipal implements UserDetails {
     private String email;
     private String password;
     private String nickname;
+
+    private boolean emailVerified;
     private Collection<? extends GrantedAuthority> authorities;
 
-    private static CommonUserPrincipal of(String email, String password, String nickname) {
+    private static CommonUserPrincipal of(String email, String password, String nickname, boolean emailVerified) {
         Set<RoleType> roleTypes = Set.of(RoleType.USER);
         return CommonUserPrincipal.builder()
                 .email(email)
@@ -34,19 +37,21 @@ public class CommonUserPrincipal implements UserDetails {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toUnmodifiableSet()))
                 .nickname(nickname)
+                .emailVerified(emailVerified)
                 .build();
     }
 
-    public UserAccountDto toDto() {
-        return UserAccountDto.builder()
-                .nickname(nickname)
-                .password(password)
-                .nickname(nickname)
-                .build();
+    public static CommonUserPrincipal from(UserAccount entity) {
+        return CommonUserPrincipal.of(
+                entity.getEmail(),
+                entity.getPassword(),
+                entity.getNickname(),
+                entity.isEmailVerified()
+                );
     }
 
     public static CommonUserPrincipal from(UserAccountDto dto){
-        return CommonUserPrincipal.of(dto.getEmail(), dto.getPassword(), dto.getNickname());
+        return CommonUserPrincipal.of(dto.getEmail(), dto.getPassword(), dto.getNickname(), dto.isEmailVerified());
     }
 
     @Override
