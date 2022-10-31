@@ -33,6 +33,8 @@ public class UserAccount {
 
     private String url;
 
+    private String bio;
+
     @Lob @Basic(fetch = FetchType.EAGER)
     private String profileImage;
 
@@ -71,5 +73,12 @@ public class UserAccount {
 
     public boolean canResendToken() {
         return emailCheckTokenCreatedAt.isBefore(LocalDateTime.now().minusMinutes(3));
+    }
+
+    public void changeProfile(String bio, String url, String occupation, String location) {
+        this.bio = bio;
+        this.url = url;
+        this.occupation = occupation;
+        this.location = location;
     }
 }

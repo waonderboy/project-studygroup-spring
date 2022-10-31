@@ -1,5 +1,6 @@
 package com.practice.studygroup.service;
 
+import com.practice.studygroup.dto.response.ProfileForm;
 import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
@@ -20,6 +21,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserAccountService {
     
     private final UserAccountRepository userAccountRepository;
@@ -46,10 +48,6 @@ public class UserAccountService {
         javaMailSender.send(mailMessage); //TODO : SMTP로 구현필요
     }
 
-    /**
-     * authentication Filter, Manager, Provider, Service 등 나중에 고도화 시
-     * 시큐리티 빈으로 등록해서 주입후 사용
-     */
     public CommonUserPrincipal loginAfterSignUp(String email) {
         UserAccount userAccount = userAccountRepository.findByEmail(email).orElse(null);
         CommonUserPrincipal commonUserPrincipal = CommonUserPrincipal.from(UserAccountDto.from(userAccount));
@@ -76,4 +74,22 @@ public class UserAccountService {
         return userAccountRepository.findByEmail(commonUserPrincipal.getEmail()).orElse(null).canResendToken();
     }
 
+    public ProfileForm getUserAccountProfile(String nickname) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+
+        return userAccount != null ? ProfileForm.from(userAccount) : null;
+    }
+
+    @Transactional
+    public ProfileForm updateUserAccountProfile(String nickname,ProfileForm profileForm) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        userAccount.changeProfile(
+                profileForm.getBio(),
+                profileForm.getUrl(),
+                profileForm.getOccupation(),
+                profileForm.getLocation()
+        );
+
+        return ProfileForm.from(userAccount);
+    }
 }

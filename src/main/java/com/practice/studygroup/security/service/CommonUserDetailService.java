@@ -21,7 +21,7 @@ public class CommonUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String emailOrNickname) throws UsernameNotFoundException {
         UserAccount userAccount = userAccountRepository.findByEmail(emailOrNickname)
-                .orElse(userAccountRepository.findByNickname(emailOrNickname).orElse(null));
+                .orElse(userAccountRepository.findByNickname(emailOrNickname));
 
         if (userAccount == null) {
             throw new UsernameNotFoundException(emailOrNickname);
