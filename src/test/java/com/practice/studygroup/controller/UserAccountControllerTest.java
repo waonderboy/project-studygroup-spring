@@ -2,6 +2,7 @@ package com.practice.studygroup.controller;
 
 import com.practice.studygroup.FormDataEncoder;
 import com.practice.studygroup.config.SecurityConfig;
+import com.practice.studygroup.config.TestSecurityConfig;
 import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
 import com.practice.studygroup.dto.request.SignUpForm;
@@ -36,8 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 준비_실행_검증 by BDD
  */
 @DisplayName("유저 컨트롤러 - 회원가입")
-@Import({SecurityConfig.class, SignUpFormValidator.class, FormDataEncoder.class})
-@WebMvcTest
+@Import({TestSecurityConfig.class, SignUpFormValidator.class, FormDataEncoder.class})
+@WebMvcTest(UserAccountController.class)
 class UserAccountControllerTest {
 
     @Autowired
@@ -46,9 +47,6 @@ class UserAccountControllerTest {
     private FormDataEncoder dataEncoder;
     @MockBean
     private UserAccountService userAccountService;
-
-    @MockBean
-    private UserAccountRepository userAccountRepository;
 
 
     @DisplayName("[View][GET] - 회원가입 페이지 요청")
@@ -127,7 +125,7 @@ class UserAccountControllerTest {
                         .param("email", email))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("error"))
-                .andExpect(view().name("account/checked-email"))
+                .andExpect(view().name("account/check-email"))
                 .andExpect(unauthenticated());
 
         // Then

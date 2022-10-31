@@ -34,6 +34,7 @@ public class UserAccountDto{
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .nickname(entity.getNickname())
+                .emailVerified(entity.isEmailVerified())
                 .build();
     }
 

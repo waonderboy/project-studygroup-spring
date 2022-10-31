@@ -2,6 +2,7 @@ package com.practice.studygroup.controller;
 
 
 import com.practice.studygroup.dto.request.SignUpForm;
+import com.practice.studygroup.dto.response.ProfileForm;
 import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.dto.security.CurrentUser;
 import com.practice.studygroup.service.UserAccountService;
@@ -11,10 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -53,16 +51,15 @@ public class UserAccountController {
 
     @GetMapping("/check-email-token")
     public String checkEmailToken(String token, String email, Model model) {
-        String checkedEmailView = "account/checked-email";
 
         if (userAccountService.isCorrectTokenAndSignUp(email, token)) {
             CommonUserPrincipal commonUserPrincipal = userAccountService.loginAfterSignUp(email);
             model.addAttribute("nickname", commonUserPrincipal.getNickname());
-            return checkedEmailView;
+            return "account/checked-email";
         }
 
         model.addAttribute("error", "wrong.email");
-        return checkedEmailView;
+        return "account/check-email";
     }
 
     @GetMapping("/resend-confirm-email")
@@ -71,7 +68,7 @@ public class UserAccountController {
         if(!userAccountService.canSendConfirmEmail(commonUserPrincipal)){
             model.addAttribute("error", "이메일 인증은 3분에 한번만 가능합니다.");
             model.addAttribute("email", commonUserPrincipal.getEmail());
-            return  "account/checked-email";
+            return "account/checked-email";
         }
 
         // 재발급 가능
@@ -80,6 +77,19 @@ public class UserAccountController {
         return "redirect:/";
     }
 
-
+    @GetMapping("/profile/{nickname}")
+    public String profile(@PathVariable String nickname, @CurrentUser CommonUserPrincipal commonUserPrincipal, Model model) {
+        ProfileForm userProfile = userAccountService.getUserAccountProfile(nickname);
+        boolean isOwner = true;
+        if (userProfile == null) {
+            throw new IllegalArgumentException(nickname + "에 해당하는 유저가 없습니다.");
+        }
+        if (commonUserPrincipal == null || !nickname.equals(commonUserPrincipal.getNickname())) {
+            isOwner = false;
+        }
+        model.addAttribute("account", userProfile);
+        model.addAttribute("isOwner", isOwner);
+        return "account/profile";
+    }
 
 }
