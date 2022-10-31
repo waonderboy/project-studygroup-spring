@@ -1,5 +1,6 @@
 package com.practice.studygroup.config;
 
+import com.practice.studygroup.repository.UserAccountRepository;
 import com.practice.studygroup.security.service.CommonUserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
@@ -22,9 +23,10 @@ import javax.sql.DataSource;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final UserDetailsService userDetailsService;
     private final DataSource dataSource;
+
+    private final UserAccountRepository userAccountRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,6 +52,7 @@ public class SecurityConfig {
                 .and()
                 .build();
     }
+
 
     public PersistentTokenRepository tokenRepository() {
         JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
