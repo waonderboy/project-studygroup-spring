@@ -25,9 +25,11 @@ public class CommonUserPrincipal implements UserDetails {
     private String nickname;
 
     private boolean emailVerified;
+
+    private String profileImage;
     private Collection<? extends GrantedAuthority> authorities;
 
-    private static CommonUserPrincipal of(String email, String password, String nickname, boolean emailVerified) {
+    private static CommonUserPrincipal of(String email, String password, String nickname, String profileImage, boolean emailVerified) {
         Set<RoleType> roleTypes = Set.of(RoleType.USER);
         return CommonUserPrincipal.builder()
                 .email(email)
@@ -37,6 +39,7 @@ public class CommonUserPrincipal implements UserDetails {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toUnmodifiableSet()))
                 .nickname(nickname)
+                .profileImage(profileImage)
                 .emailVerified(emailVerified)
                 .build();
     }
@@ -46,12 +49,13 @@ public class CommonUserPrincipal implements UserDetails {
                 entity.getEmail(),
                 entity.getPassword(),
                 entity.getNickname(),
+                entity.getProfileImage(),
                 entity.isEmailVerified()
                 );
     }
 
     public static CommonUserPrincipal from(UserAccountDto dto){
-        return CommonUserPrincipal.of(dto.getEmail(), dto.getPassword(), dto.getNickname(), dto.isEmailVerified());
+        return CommonUserPrincipal.of(dto.getEmail(), dto.getPassword(), dto.getNickname(), dto.getProfileImage(), dto.isEmailVerified());
     }
 
     @Override
