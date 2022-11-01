@@ -75,10 +75,11 @@ public class UserAccount {
         return emailCheckTokenCreatedAt.isBefore(LocalDateTime.now().minusMinutes(3));
     }
 
-    public void changeProfile(String bio, String url, String occupation, String location) {
+    public void changeProfile(String bio, String url, String occupation, String location, String profileImage) {
         this.bio = bio;
         this.url = url;
         this.occupation = occupation;
         this.location = location;
+        this.profileImage = profileImage;
     }
 }
