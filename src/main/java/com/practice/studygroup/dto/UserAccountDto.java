@@ -20,6 +20,8 @@ public class UserAccountDto{
 
     private boolean emailVerified;
 
+    private String profileImage;
+
 
     public UserAccount toEntity(PasswordEncoder passwordEncoder) {
         return UserAccount.builder()
@@ -34,6 +36,7 @@ public class UserAccountDto{
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .nickname(entity.getNickname())
+                .profileImage(entity.getProfileImage())
                 .emailVerified(entity.isEmailVerified())
                 .build();
     }

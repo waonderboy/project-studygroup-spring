@@ -87,7 +87,8 @@ public class UserAccountService {
                 profileForm.getBio(),
                 profileForm.getUrl(),
                 profileForm.getOccupation(),
-                profileForm.getLocation()
+                profileForm.getLocation(),
+                profileForm.getProfileImage()
         );
 
         return ProfileForm.from(userAccount);
