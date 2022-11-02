@@ -34,13 +34,6 @@ public class SignUpForm {
         return new SignUpForm();
     }
 
-    public static SignUpForm of(String email, String nickname, String password) {
-        return new SignUpForm(email, nickname, password);
-    }
-
-
-
-    // TODO :: need to Method making DTO because open session in view
     public UserAccountDto toDto() {
         return UserAccountDto.builder()
                 .email(email)
