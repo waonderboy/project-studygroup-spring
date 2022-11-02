@@ -53,6 +53,10 @@ public class UserAccount {
 
     private boolean studyEnrollmentResultByWeb;
 
+    private boolean studyUpdateResultByEmail;
+
+    private boolean studyUpdateResultByWeb;
+
     protected UserAccount() {
     }
 
@@ -81,5 +85,27 @@ public class UserAccount {
         this.occupation = occupation;
         this.location = location;
         this.profileImage = profileImage;
+    }
+
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
+    public void changeNotification(boolean studyCreatedByEmail,
+                                   boolean studyCreatedByWeb,
+                                   boolean studyEnrollmentResultByEmail,
+                                   boolean studyEnrollmentResultByWeb,
+                                   boolean studyUpdateResultByEmail,
+                                   boolean studyUpdateResultByWeb) {
+        this.studyCreatedByEmail = studyCreatedByEmail;
+        this.studyCreatedByWeb = studyCreatedByWeb;
+        this.studyEnrollmentResultByEmail = studyEnrollmentResultByEmail;
+        this.studyEnrollmentResultByWeb = studyEnrollmentResultByWeb;
+        this.studyUpdateResultByEmail = studyUpdateResultByEmail;
+        this.studyUpdateResultByWeb = studyUpdateResultByWeb;
+    }
+
+    public void changeNickname(String newNickname) {
+        this.nickname = newNickname;
     }
 }

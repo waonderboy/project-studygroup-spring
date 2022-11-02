@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 
@@ -44,7 +45,7 @@ public class UserAccountController {
         }
 
         userAccountService.processNewUserAccount(signUpForm.toDto());
-        userAccountService.loginAfterSignUp(signUpForm.getEmail());
+        userAccountService.loginAfterModifyInfo(signUpForm.getEmail());
 
         return "redirect:/";
     }
@@ -52,8 +53,8 @@ public class UserAccountController {
     @GetMapping("/check-email-token")
     public String checkEmailToken(String token, String email, Model model) {
 
-        if (userAccountService.isCorrectTokenAndSignUp(email, token)) {
-            CommonUserPrincipal commonUserPrincipal = userAccountService.loginAfterSignUp(email);
+        if (userAccountService.isCorrectTokenAndVerifyEmail(email, token)) {
+            CommonUserPrincipal commonUserPrincipal = userAccountService.loginAfterModifyInfo(email);
             model.addAttribute("nickname", commonUserPrincipal.getNickname());
             return "account/checked-email";
         }
@@ -65,7 +66,7 @@ public class UserAccountController {
     @GetMapping("/resend-confirm-email")
     public String resendConfirmEmail(@CurrentUser CommonUserPrincipal commonUserPrincipal, Model model) {
 
-        if(!userAccountService.canSendConfirmEmail(commonUserPrincipal)){
+        if(!userAccountService.canSendConfirmEmail(commonUserPrincipal.getEmail())){
             model.addAttribute("error", "이메일 인증은 3분에 한번만 가능합니다.");
             model.addAttribute("email", commonUserPrincipal.getEmail());
             return "account/checked-email";
@@ -92,4 +93,37 @@ public class UserAccountController {
         return "account/profile";
     }
 
+
+    @GetMapping("/email-sign-in")
+    public String signInByEmail() {
+        return "account/email-sign-in";
+    }
+
+    @PostMapping("/email-sign-in")
+    public String sendEmailLoginLink(String email, Model model, RedirectAttributes attributes) {
+        if (!userAccountService.checkValidEmail(email)) {
+            model.addAttribute("error", "존재하지 않는 이메일 주소입니다.");
+            return "account/email-sign-in";
+        }
+
+        if (userAccountService.canSendConfirmEmail(email)) {
+            model.addAttribute("error", "이메일 로그인은 1시간 뒤에 사용할 수 있습니다.");
+            return "account/email-sign-in";
+        }
+
+        userAccountService.sendEmailLoginLink(email);
+        attributes.addFlashAttribute("message", "인증메일을 발송 했습니다");
+        return "redirect:/email-sign-in";
+    }
+
+    @GetMapping("/sign-in-by-email")
+    public String signInByEmail(@RequestParam String token, @RequestParam String email, Model model) {
+        if (!userAccountService.isCorrectTokenAndVerifyEmail(email, token)) {
+               model.addAttribute("error", "로그인 할 수 없습니다.");
+               return "account/signed-in-by-email";
+        }
+
+        userAccountService.loginAfterModifyInfo(email);
+        return "account/signed-in-by-email";
+    }
 }

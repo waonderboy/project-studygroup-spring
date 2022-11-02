@@ -117,7 +117,7 @@ class UserAccountControllerTest {
         String token = "This Is Plain Text";
         UserAccountDto dto = UserAccountDto.builder().email(email).build();
         given(userAccountService.isCorrectTokenAndSignUp(email, token)).willReturn(false);
-        given(userAccountService.loginAfterSignUp(email)).willReturn(CommonUserPrincipal.from(dto));
+        given(userAccountService.loginAfterModifyInfo(email)).willReturn(CommonUserPrincipal.from(dto));
 
         // When
         mockMvc.perform(get("/check-email-token")
@@ -147,7 +147,7 @@ class UserAccountControllerTest {
                 .nickname(nick)
                 .build();
         given(userAccountService.isCorrectTokenAndSignUp(email, token)).willReturn(true);
-        given(userAccountService.loginAfterSignUp(email)).willReturn(CommonUserPrincipal.from(dto));
+        given(userAccountService.loginAfterModifyInfo(email)).willReturn(CommonUserPrincipal.from(dto));
 
         // When
         mockMvc.perform(get("/check-email-token")
@@ -161,7 +161,7 @@ class UserAccountControllerTest {
 
         // Then
         then(userAccountService).should().isCorrectTokenAndSignUp(email, token);
-        then(userAccountService).should().loginAfterSignUp(email);
+        then(userAccountService).should().loginAfterModifyInfo(email);
     }
 
     @DisplayName("[GET] - 인증 메일 재발송 성공")
@@ -171,7 +171,7 @@ class UserAccountControllerTest {
         // Given
         CommonUserPrincipal principal = createCommonUserPrincipal();
 
-        given(userAccountService.canSendConfirmEmail(principal)).willReturn(true);
+        given(userAccountService.canSendConfirmEmail(principal.getEmail())).willReturn(true);
         willDoNothing().given(userAccountService).sendSignUpConfirmEmail(principal.getEmail());
 
         // When
@@ -180,7 +180,7 @@ class UserAccountControllerTest {
                 .andExpect(status().is3xxRedirection());
 
         // Then
-        then(userAccountService).should().canSendConfirmEmail(principal);
+        then(userAccountService).should().canSendConfirmEmail(principal.getEmail());
         then(userAccountService).should().sendSignUpConfirmEmail(principal.getEmail());
     }
 
@@ -191,7 +191,7 @@ class UserAccountControllerTest {
         // Given
         CommonUserPrincipal principal = createCommonUserPrincipal();
 
-        given(userAccountService.canSendConfirmEmail(principal)).willReturn(false);
+        given(userAccountService.canSendConfirmEmail(principal.getEmail())).willReturn(false);
         willDoNothing().given(userAccountService).sendSignUpConfirmEmail(principal.getEmail());
 
         // When
@@ -202,7 +202,7 @@ class UserAccountControllerTest {
                 .andExpect(model().attributeExists("email"));
 
         // Then
-        then(userAccountService).should().canSendConfirmEmail(principal);
+        then(userAccountService).should().canSendConfirmEmail(principal.getEmail());
     }
 
 
@@ -216,11 +216,11 @@ class UserAccountControllerTest {
 
 
     private SignUpForm createNormalSignUpForm() {
-        return SignUpForm.of("normal@naver.com", "kimkim", "asdfa!@#");
+        return new SignUpForm("normal@naver.com", "kimkim", "asdfa!@#");
     }
 
     private SignUpForm createAbnormalSignUpForm() {
-        return SignUpForm.of("normal@naver.com", "ki", "asdfa!@#");
+        return new SignUpForm("normal@naver.com", "ki", "asdfa!@#");
     }
 
 }

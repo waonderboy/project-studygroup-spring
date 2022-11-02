@@ -1,5 +1,7 @@
 package com.practice.studygroup.service;
 
+import com.practice.studygroup.dto.request.NicknameForm;
+import com.practice.studygroup.dto.request.NotificationForm;
 import com.practice.studygroup.dto.response.ProfileForm;
 import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.domain.UserAccount;
@@ -12,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserAccountService {
-    
     private final UserAccountRepository userAccountRepository;
     private final JavaMailSender javaMailSender;
     private final PasswordEncoder passwordEncoder;
@@ -34,21 +34,31 @@ public class UserAccountService {
         sendSignUpConfirmEmail(newUserAccount.getEmail());
     }
 
-    @Transactional
+    @Transactional // 내부메서드 호출이므로 Transcational을 달아줘야함
     public void sendSignUpConfirmEmail(String email) {
+        sendUrlAndTokenToEmail(email, "/check-email-token?token=");
+    }
+
+    @Transactional // 내부메서드 호출이므로 Transcational을 달아줘야함
+    public void sendEmailLoginLink(String email) {
+        sendUrlAndTokenToEmail(email, "/sign-in-by-email?token=");
+    }
+
+    @Transactional
+    public void sendUrlAndTokenToEmail(String email, String url) {
         UserAccount userAccount = userAccountRepository.findByEmail(email).orElse(null);
         userAccount.generateEmailCheckToken();
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(userAccount.getEmail());
         mailMessage.setSubject("스터디그룹, 회원 가입 인증");
-        mailMessage.setText("/check-email-token?token=" + userAccount.getEmailCheckToken()
+        mailMessage.setText(url + userAccount.getEmailCheckToken()
                 + "&email=" + userAccount.getEmail());
 
         javaMailSender.send(mailMessage); //TODO : SMTP로 구현필요
     }
 
-    public CommonUserPrincipal loginAfterSignUp(String email) {
+    public CommonUserPrincipal loginAfterModifyInfo(String email) {
         UserAccount userAccount = userAccountRepository.findByEmail(email).orElse(null);
         CommonUserPrincipal commonUserPrincipal = CommonUserPrincipal.from(UserAccountDto.from(userAccount));
 
@@ -63,21 +73,11 @@ public class UserAccountService {
     }
 
     @Transactional
-    public boolean isCorrectTokenAndSignUp(String email, String token) {
+    public boolean isCorrectTokenAndVerifyEmail(String email, String token) {
         UserAccount userAccount = userAccountRepository.findByEmail(email).orElse(null);
 
         return (userAccount != null && userAccount.isValidToken(token)) ?
                 userAccount.completeSignUp() : false;
-    }
-
-    public boolean canSendConfirmEmail(CommonUserPrincipal commonUserPrincipal) {
-        return userAccountRepository.findByEmail(commonUserPrincipal.getEmail()).orElse(null).canResendToken();
-    }
-
-    public ProfileForm getUserAccountProfile(String nickname) {
-        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
-
-        return userAccount != null ? ProfileForm.from(userAccount) : null;
     }
 
     @Transactional
@@ -93,4 +93,44 @@ public class UserAccountService {
 
         return ProfileForm.from(userAccount);
     }
+
+    @Transactional
+    public void updateNotification(String nickname, NotificationForm notificationForm) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        userAccount.changeNotification(
+                notificationForm.isStudyCreatedByEmail(),
+                notificationForm.isStudyCreatedByWeb(),
+                notificationForm.isStudyEnrollmentResultByEmail(),
+                notificationForm.isStudyEnrollmentResultByWeb(),
+                notificationForm.isStudyUpdateResultByEmail(),
+                notificationForm.isStudyUpdateResultByWeb());
+    }
+
+    @Transactional
+    public void updatePassword(String nickname, String password) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        userAccount.changePassword(passwordEncoder.encode(password));
+    }
+
+    @Transactional
+    public void updateNickname(String nickname, NicknameForm nicknameForm) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        userAccount.changeNickname(nicknameForm.getNewNickname());
+        loginAfterModifyInfo(userAccount.getEmail());
+    }
+
+    public ProfileForm getUserAccountProfile(String nickname) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        return userAccount != null ? ProfileForm.from(userAccount) : null;
+    }
+
+    public boolean checkValidEmail(String email) {
+        return userAccountRepository.existsByEmail(email);
+    }
+
+    public boolean canSendConfirmEmail(String email) {
+        return userAccountRepository.findByEmail(email).orElse(null).canResendToken();
+    }
+
+
 }
