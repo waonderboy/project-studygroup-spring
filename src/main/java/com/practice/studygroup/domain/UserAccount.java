@@ -5,6 +5,8 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -57,6 +59,9 @@ public class UserAccount {
 
     private boolean studyUpdateResultByWeb;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "userAccount", cascade = CascadeType.ALL)
+    private Set<UserAccountTag> tags = new HashSet<>();
+
     protected UserAccount() {
     }
 
@@ -107,5 +112,9 @@ public class UserAccount {
 
     public void changeNickname(String newNickname) {
         this.nickname = newNickname;
+    }
+
+    public void setTag(UserAccountTag userAccountTag) {
+        this.tags.add(userAccountTag);
     }
 }
