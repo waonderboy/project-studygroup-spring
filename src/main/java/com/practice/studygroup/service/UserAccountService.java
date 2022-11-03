@@ -1,11 +1,15 @@
 package com.practice.studygroup.service;
 
+import com.practice.studygroup.domain.Tag;
+import com.practice.studygroup.domain.UserAccountTag;
+import com.practice.studygroup.dto.TagDto;
 import com.practice.studygroup.dto.request.NicknameForm;
 import com.practice.studygroup.dto.request.NotificationForm;
 import com.practice.studygroup.dto.response.ProfileForm;
 import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
+import com.practice.studygroup.repository.TagRepository;
 import com.practice.studygroup.repository.UserAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
@@ -18,15 +22,28 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserAccountService {
     private final UserAccountRepository userAccountRepository;
+    private final TagRepository tagRepository;
     private final JavaMailSender javaMailSender;
     private final PasswordEncoder passwordEncoder;
+
+    @Transactional
+    public void addTag(String nickname, TagDto tagDto) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        Tag tag = tagRepository.findByTitle(tagDto.getTagTitle()).get();
+        UserAccountTag userAccountTag = UserAccountTag.AddTagToUserAccount(userAccount, tag);
+
+        userAccount.setTag(userAccountTag);
+    }
 
     @Transactional
     public void processNewUserAccount(UserAccountDto userAccountdto) {
@@ -133,4 +150,11 @@ public class UserAccountService {
     }
 
 
+    public Set<Tag> getTags(String nickname) {
+        return userAccountRepository.findByNickname(nickname)
+                .getTags()
+                .stream()
+                .map(e -> e.getTag())
+                .collect(Collectors.toSet());
+    }
 }
