@@ -9,13 +9,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
+import org.springframework.transaction.annotation.Transactional;
 
-public class WithAccountSecurityContextFacotry implements WithSecurityContextFactory<WithAccount> {
+import javax.persistence.EntityManager;
+
+
+public class WithAccountSecurityContextFactory implements WithSecurityContextFactory<WithAccount> {
 
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
     private UserAccountService userAccountService;
+    @Autowired
+    private EntityManager em;
 
     @Override
     public SecurityContext createSecurityContext(WithAccount withAccount) {
@@ -26,6 +32,9 @@ public class WithAccountSecurityContextFacotry implements WithSecurityContextFac
         signUpForm.setEmail(nickname + "@email.com");
         signUpForm.setPassword("12345678");
         userAccountService.processNewUserAccount(signUpForm.toDto());
+
+        em.flush();
+        em.clear();
 
         UserDetails principal = userDetailsService.loadUserByUsername(nickname);
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, principal.getPassword(), principal.getAuthorities());

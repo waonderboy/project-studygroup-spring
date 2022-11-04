@@ -23,7 +23,6 @@ import javax.sql.DataSource;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final UserDetailsService userDetailsService;
     private final DataSource dataSource;
 
     private final UserAccountRepository userAccountRepository;
@@ -47,10 +46,15 @@ public class SecurityConfig {
                 .logout()
                     .logoutSuccessUrl("/")
                     .and()
-                .rememberMe().userDetailsService(userDetailsService)
+                .rememberMe().userDetailsService(userDetailsService())
                     .tokenRepository(tokenRepository())
                 .and()
                 .build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return new CommonUserDetailService(userAccountRepository);
     }
 
 
