@@ -22,6 +22,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -35,6 +37,8 @@ public class UserAccountService {
     private final TagRepository tagRepository;
     private final JavaMailSender javaMailSender;
     private final PasswordEncoder passwordEncoder;
+    private final EntityManager em;
+
 
     @Transactional
     public void addTag(String nickname, TagDto tagDto) {
@@ -156,5 +160,21 @@ public class UserAccountService {
                 .stream()
                 .map(e -> e.getTag())
                 .collect(Collectors.toSet());
+    }
+
+    @Transactional
+    public boolean removeTag(String nickname, String tagTitle) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        Optional<UserAccountTag> userAccountTag = userAccount.getTags()
+                .stream()
+                .filter(tag -> tag
+                        .getTag()
+                        .getTitle()
+                        .equals(tagTitle))
+                .findFirst();
+
+        userAccountTag.ifPresent(tag -> userAccount.getTags().remove(tag));
+
+        return userAccountTag.isPresent();
     }
 }

@@ -6,8 +6,10 @@ import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter @Builder @AllArgsConstructor
@@ -59,7 +61,7 @@ public class UserAccount {
 
     private boolean studyUpdateResultByWeb;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "userAccount", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "userAccount", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserAccountTag> tags = new HashSet<>();
 
     protected UserAccount() {
@@ -117,4 +119,7 @@ public class UserAccount {
     public void setTag(UserAccountTag userAccountTag) {
         this.tags.add(userAccountTag);
     }
+
+
+
 }
