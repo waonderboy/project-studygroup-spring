@@ -1,5 +1,7 @@
 package com.practice.studygroup.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.practice.studygroup.domain.Tag;
 import com.practice.studygroup.dto.TagDto;
 import com.practice.studygroup.dto.request.NicknameForm;
@@ -37,9 +39,8 @@ public class SettingsController {
     static final String SETTING_PROFILE_VIEW = "settings/profile";
     private final UserAccountService userAccountService;
     private final TagService tagService;
-
+    private final ObjectMapper objectMapper;
     private final PasswordFormValidator passwordFormValidator;
-
     private final NicknameFormValidator nicknameFormValidator;
 
     @InitBinder("passwordForm")
@@ -137,11 +138,14 @@ public class SettingsController {
     }
 
     @GetMapping("/tags")
-    public String updateTagForm(@CurrentUser CommonUserPrincipal commonUserPrincipal, Model model) {
+    public String updateTagForm(@CurrentUser CommonUserPrincipal commonUserPrincipal, Model model) throws JsonProcessingException {
 
-        model.addAttribute("account", commonUserPrincipal);
+        model.addAttribute(commonUserPrincipal);
         Set<Tag> tags = userAccountService.getTags(commonUserPrincipal.getNickname());
-        model.addAttribute("tags", tags.stream().map(Tag::getTitle).collect(Collectors.toList()));
+        model.addAttribute("tags", tags.stream().map(Tag::getTitle).collect(Collectors.toSet()));
+
+        List<String> allTags = tagService.getAllTags();
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(allTags));
         return "settings/tags";
     }
 
@@ -152,19 +156,17 @@ public class SettingsController {
         userAccountService.addTag(commonUserPrincipal.getNickname(), tagDto);
         return ResponseEntity.ok().build();
     }
-//
-//    @PostMapping("/tags/remove")
-//    @ResponseBody
-//    public ResponseEntity removeTag(@CurrentAccount Account account, @RequestBody TagForm tagForm) {
-//        String title = tagForm.getTagTitle();
-//        Tag tag = tagRepository.findByTitle(title);
-//        if (tag == null) {
-//            return ResponseEntity.badRequest().build();
-////        }
-//
-//        accountService.removeTag(account, tag);
-//        return ResponseEntity.ok().build();
-//    }
+
+    @PostMapping("/tags/remove")
+    @ResponseBody
+    public ResponseEntity removeTag(@CurrentUser CommonUserPrincipal commonUserPrincipal, @RequestBody TagForm tagForm) {
+
+        if (!userAccountService.removeTag(commonUserPrincipal.getNickname(), tagForm.getTagTitle())) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/account")
     public String updateNicknameForm(@CurrentUser CommonUserPrincipal commonUserPrincipal, Model model) {
 
