@@ -116,7 +116,7 @@ class UserAccountControllerTest {
         String email = "kkkkk@naver.com";
         String token = "This Is Plain Text";
         UserAccountDto dto = UserAccountDto.builder().email(email).build();
-        given(userAccountService.isCorrectTokenAndSignUp(email, token)).willReturn(false);
+        given(userAccountService.isCorrectTokenAndVerifyEmail(email, token)).willReturn(false);
         given(userAccountService.loginAfterModifyInfo(email)).willReturn(CommonUserPrincipal.from(dto));
 
         // When
@@ -129,7 +129,7 @@ class UserAccountControllerTest {
                 .andExpect(unauthenticated());
 
         // Then
-        then(userAccountService).should().isCorrectTokenAndSignUp(email, token);
+        then(userAccountService).should().isCorrectTokenAndVerifyEmail(email, token);
 
     }
 
@@ -146,7 +146,7 @@ class UserAccountControllerTest {
                 .email(email)
                 .nickname(nick)
                 .build();
-        given(userAccountService.isCorrectTokenAndSignUp(email, token)).willReturn(true);
+        given(userAccountService.isCorrectTokenAndVerifyEmail(email, token)).willReturn(true);
         given(userAccountService.loginAfterModifyInfo(email)).willReturn(CommonUserPrincipal.from(dto));
 
         // When
@@ -160,7 +160,7 @@ class UserAccountControllerTest {
                 .andExpect(authenticated().withUsername(nick));
 
         // Then
-        then(userAccountService).should().isCorrectTokenAndSignUp(email, token);
+        then(userAccountService).should().isCorrectTokenAndVerifyEmail(email, token);
         then(userAccountService).should().loginAfterModifyInfo(email);
     }
 

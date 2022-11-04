@@ -13,6 +13,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
@@ -36,6 +38,7 @@ class UserAccountServiceTest {
         UserAccountDto dto = createUserAccountDto();
         UserAccount entity = dto.toEntity(passwordEncoder);
         given(userAccountRepository.save(entity)).willReturn(entity);
+        given(userAccountRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(entity));
 
         // When
         sut.processNewUserAccount(dto);
@@ -43,6 +46,8 @@ class UserAccountServiceTest {
         // Then
         assertThat(dto.getPassword()).isNotSameAs(entity.getPassword());
         then(userAccountRepository).should().save(entity);
+        then(userAccountRepository).should().findByEmail(dto.getEmail());
+
     }
 
     private UserAccountDto createUserAccountDto() {
