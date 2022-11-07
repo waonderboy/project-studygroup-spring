@@ -1,16 +1,17 @@
 package com.practice.studygroup.service;
 
-import com.practice.studygroup.domain.Tag;
-import com.practice.studygroup.domain.UserAccountTag;
+import com.practice.studygroup.domain.*;
 import com.practice.studygroup.dto.TagDto;
+import com.practice.studygroup.dto.ZoneDto;
 import com.practice.studygroup.dto.request.NicknameForm;
 import com.practice.studygroup.dto.request.NotificationForm;
+import com.practice.studygroup.dto.request.ZoneForm;
 import com.practice.studygroup.dto.response.ProfileForm;
 import com.practice.studygroup.dto.security.CommonUserPrincipal;
-import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.UserAccountDto;
 import com.practice.studygroup.repository.TagRepository;
 import com.practice.studygroup.repository.UserAccountRepository;
+import com.practice.studygroup.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -35,19 +36,9 @@ import java.util.stream.Collectors;
 public class UserAccountService {
     private final UserAccountRepository userAccountRepository;
     private final TagRepository tagRepository;
+    private final ZoneRepository zoneRepository;
     private final JavaMailSender javaMailSender;
     private final PasswordEncoder passwordEncoder;
-    private final EntityManager em;
-
-
-    @Transactional
-    public void addTag(String nickname, TagDto tagDto) {
-        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
-        Tag tag = tagRepository.findByTitle(tagDto.getTagTitle()).get();
-        UserAccountTag userAccountTag = UserAccountTag.AddTagToUserAccount(userAccount, tag);
-
-        userAccount.setTag(userAccountTag);
-    }
 
     @Transactional
     public void processNewUserAccount(UserAccountDto userAccountdto) {
@@ -163,6 +154,15 @@ public class UserAccountService {
     }
 
     @Transactional
+    public void addTag(String nickname, TagDto tagDto) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        Tag tag = tagRepository.findByTitle(tagDto.getTagTitle()).get();
+        UserAccountTag userAccountTag = UserAccountTag.AddTagToUserAccount(userAccount, tag);
+
+        userAccount.setTag(userAccountTag);
+    }
+
+    @Transactional
     public boolean removeTag(String nickname, String tagTitle) {
         UserAccount userAccount = userAccountRepository.findByNickname(nickname);
         Optional<UserAccountTag> userAccountTag = userAccount.getTags()
@@ -176,5 +176,41 @@ public class UserAccountService {
         userAccountTag.ifPresent(tag -> userAccount.getTags().remove(tag));
 
         return userAccountTag.isPresent();
+    }
+
+    public Set<Zone> getZones(String nickname) {
+        return userAccountRepository.findByNickname(nickname)
+                .getZones()
+                .stream()
+                .map(e -> e.getZone())
+                .collect(Collectors.toSet());
+
+    }
+
+    @Transactional
+    public void addZone(String nickname, ZoneDto zoneDto) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        Zone zone = zoneRepository.findByCityAndProvince(zoneDto.getCityName(), zoneDto.getProvinceName());
+        UserAccountZone userAccountZone = UserAccountZone.AddZoneToUserAccount(userAccount, zone);
+
+        userAccount.setZone(userAccountZone);
+    }
+
+    @Transactional
+    public boolean removeZone(String nickname, String cityName, String provinceName) {
+        UserAccount userAccount = userAccountRepository.findByNickname(nickname);
+        Zone zone = zoneRepository.findByCityAndProvince(cityName, provinceName);
+
+        Optional<UserAccountZone> userAccountZone = userAccount.getZones()
+                .stream()
+                .filter(UserZone -> UserZone
+                        .getZone()
+                        .toString()
+                        .equals(zone.toString()))
+                .findFirst();
+
+        userAccountZone.ifPresent(userZone -> userAccount.getZones().remove(userZone));
+
+        return userAccountZone.isPresent();
     }
 }

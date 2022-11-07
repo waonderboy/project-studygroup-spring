@@ -6,12 +6,16 @@ import com.practice.studygroup.WithAccount;
 import com.practice.studygroup.domain.Tag;
 import com.practice.studygroup.domain.UserAccount;
 import com.practice.studygroup.dto.TagDto;
+import com.practice.studygroup.dto.ZoneDto;
 import com.practice.studygroup.dto.request.PasswordForm;
 import com.practice.studygroup.dto.request.TagForm;
+import com.practice.studygroup.dto.request.ZoneForm;
 import com.practice.studygroup.repository.TagRepository;
 import com.practice.studygroup.repository.UserAccountRepository;
+import com.practice.studygroup.repository.ZoneRepository;
 import com.practice.studygroup.service.TagService;
 import com.practice.studygroup.service.UserAccountService;
+import com.practice.studygroup.service.ZoneService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
@@ -59,7 +63,10 @@ class SettingsControllerTest {
     private TagRepository tagRepository;
     @Autowired
     private TagService tagService;
-
+    @Autowired
+    private ZoneRepository zoneRepository;
+    @Autowired
+    private ZoneService zoneService;
 
     @AfterEach
     void afterEach() {
@@ -177,12 +184,63 @@ class SettingsControllerTest {
                         .with(csrf()))
                 .andExpect(status().isOk());
 
-        List<String> testNickName = userAccountRepository.findByNickname("testNickName").getTags().stream().map(userAccountTag -> userAccountTag.getTag().getTitle()).collect(Collectors.toList());
-
         assertThat(userAccountRepository.findByNickname("testNickName").getTags().stream()
                 .map(userAccountTag -> userAccountTag.getTag().getTitle())
                 .collect(Collectors.toList()))
                 .doesNotContain("new");
+    }
+
+    @WithAccount("testNickName")
+    @DisplayName("[GET] 지역 수정 폼 - 성공")
+    @Test
+    void updateZonesForm() throws Exception {
+        mockMvc.perform(get("/settings/zones"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("settings/zones"))
+                .andExpect(model().attributeExists("whitelist"))
+                .andExpect(model().attributeExists("zones"));
+
+    }
+    @WithAccount("testNickName")
+    @DisplayName("[Post] 지역 추가 - 성공")
+    @Test
+    void addZones() throws Exception {
+        ZoneForm zoneForm = new ZoneForm();
+        zoneForm.setZoneName("Andong(안동시)/North Gyeongsang");
+        mockMvc.perform(post("/settings/zones/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(zoneForm))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        assertNotNull(zoneRepository.findByCityAndProvince(zoneForm.getCityName(), zoneForm.getProvinceName()));
+        assertThat(userAccountRepository.findByNickname("testNickName").getZones().stream()
+                .map(userAccountZone -> userAccountZone.getZone().toString())
+                .collect(Collectors.toList()))
+                .contains("Andong(안동시)/North Gyeongsang");
+    }
+
+
+    @Disabled
+    @WithAccount("testNickName")
+    @DisplayName("[Post] 지역 삭제 - 성공")
+    @Test
+    void removeZones() throws Exception {
+        ZoneForm zoneForm = new ZoneForm();
+        zoneForm.setZoneName("Andong(안동시)/North Gyeongsang");
+        ZoneDto zoneDto = zoneService.searchZone(zoneForm.getCityName(), zoneForm.getProvinceName());
+        userAccountService.addZone("testNickName", zoneDto);
+
+        mockMvc.perform(post("/settings/zones/remove")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(zoneForm))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        assertThat(userAccountRepository.findByNickname("testNickName").getZones().stream()
+                .map(userAccountZone -> userAccountZone.getZone().toString())
+                .collect(Collectors.toList()))
+                .doesNotContain("Andong(안동시)/North Gyeongsang");
 
     }
 }

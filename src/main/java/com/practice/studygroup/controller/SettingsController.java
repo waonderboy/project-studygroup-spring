@@ -3,16 +3,16 @@ package com.practice.studygroup.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.practice.studygroup.domain.Tag;
+import com.practice.studygroup.domain.Zone;
 import com.practice.studygroup.dto.TagDto;
-import com.practice.studygroup.dto.request.NicknameForm;
-import com.practice.studygroup.dto.request.NotificationForm;
-import com.practice.studygroup.dto.request.PasswordForm;
-import com.practice.studygroup.dto.request.TagForm;
+import com.practice.studygroup.dto.ZoneDto;
+import com.practice.studygroup.dto.request.*;
 import com.practice.studygroup.dto.response.ProfileForm;
 import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.dto.security.CurrentUser;
 import com.practice.studygroup.service.TagService;
 import com.practice.studygroup.service.UserAccountService;
+import com.practice.studygroup.service.ZoneService;
 import com.practice.studygroup.validator.NicknameFormValidator;
 import com.practice.studygroup.validator.PasswordFormValidator;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +39,7 @@ public class SettingsController {
     static final String SETTING_PROFILE_VIEW = "settings/profile";
     private final UserAccountService userAccountService;
     private final TagService tagService;
+    private final ZoneService zoneService;
     private final ObjectMapper objectMapper;
     private final PasswordFormValidator passwordFormValidator;
     private final NicknameFormValidator nicknameFormValidator;
@@ -151,7 +152,6 @@ public class SettingsController {
 
     @PostMapping("/tags/add")
     public ResponseEntity addTag(@CurrentUser CommonUserPrincipal commonUserPrincipal, @RequestBody TagForm tagForm) {
-        log.info("tagForm.getTagTitle={}", tagForm.getTagTitle());
         TagDto tagDto = tagService.findOrCreateNew(tagForm.getTagTitle());
         userAccountService.addTag(commonUserPrincipal.getNickname(), tagDto);
         return ResponseEntity.ok().build();
@@ -162,6 +162,38 @@ public class SettingsController {
     public ResponseEntity removeTag(@CurrentUser CommonUserPrincipal commonUserPrincipal, @RequestBody TagForm tagForm) {
 
         if (!userAccountService.removeTag(commonUserPrincipal.getNickname(), tagForm.getTagTitle())) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/zones")
+    public String updateZoneForm(@CurrentUser CommonUserPrincipal commonUserPrincipal, Model model) throws JsonProcessingException {
+
+        model.addAttribute(commonUserPrincipal);
+        Set<Zone> zones = userAccountService.getZones(commonUserPrincipal.getNickname());
+        model.addAttribute("zones", zones.stream().map(Zone::toString).collect(Collectors.toList()));
+
+        List<String> allZones = zoneService.getAllZones();
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(allZones));
+        return "settings/zones";
+    }
+
+    @PostMapping("/zones/add")
+    public ResponseEntity addZone(@CurrentUser CommonUserPrincipal commonUserPrincipal, @RequestBody ZoneForm zoneForm) {
+        ZoneDto zoneDto = zoneService.searchZone(zoneForm.getCityName(), zoneForm.getProvinceName());
+        if (zoneDto == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        userAccountService.addZone(commonUserPrincipal.getNickname(), zoneDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/zones/remove")
+    @ResponseBody
+    public ResponseEntity removeZone(@CurrentUser CommonUserPrincipal commonUserPrincipal, @RequestBody ZoneForm zoneForm) {
+
+        if (!userAccountService.removeZone(commonUserPrincipal.getNickname(), zoneForm.getCityName(), zoneForm.getProvinceName())) {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok().build();
