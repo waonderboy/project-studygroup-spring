@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" >
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home</title>
+  <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/node_modules/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/node_modules/@yaireo/tagify/dist/tagify.css">
+
+
+  <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/node_modules/jdenticon/dist/jdenticon.min.js"></script>
+  <style>
+
+      .tagify-outside{
+          border: 0;
+      }
+      .tagify-outside .tagify__input{
+          order: -1;
+          flex: 100%;
+          border: 1px solid var(--tags-border-color);
+          margin-bottom: 1em;
+          transition: .1s;
+      }
+      .tagify--outside .tagify__input:hover{ border-color:var(--tags-hover-border-color); }
+      .tagify--outside.tagify--focus .tagify__input{
+          transition:0s;
+          border-color: var(--tags-focus-border-color);
+      }
+
+  </style>
+</head>
+<body>
+<header th:replace="header :: header" />
+
+<div class="container">
+  <div class="row mt-5 justify-content-center">
+    <div class="col-2">
+      <div th:replace="nav-menu :: settings-menu(currentMenu='zones')"></div>
+    </div>
+
+    <div class="col-8">
+      <div class="row">
+        <h2 class="col-12">활동 지역</h2>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="alert alert-info" role="alert">
+            활동 지역을 설정해주세요. 활동지역을 입력하고 태그를 입력하고 콤마(,)
+            또는 엔터를 입력하세요.
+          </div>
+          <div id="whitelist" th:text="${whitelist}" hidden></div>
+          <input id="zones" type="text" name="zones" th:value="${#strings.listJoin(zones,',')}"
+                 class="tagify-outside" aria-describedby="tagHelp" placeholder="태그를 입력해주세요."/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer th:replace="footer :: footer" />
+<script src="/node_modules/@yaireo/tagify/dist/tagify.min.js"></script>
+<script type="application/javascript" th:inline="javascript">
+    $(function() {
+
+        function zoneRequest(url, zoneName) {
+            $.ajax({
+                dataType: "json",
+                autocomplete: {
+                    enabled: true,
+                    rightKey: true,
+                },
+                contentType: "application/json; charset=utf-8",
+                method: "POST",
+                url: "/settings/zones" + url,
+                data: JSON.stringify({'zoneName': zoneName})
+            }).done(function (data, status) {
+                console.log("${data} and status is ${status}");
+            });
+        }
+
+        function onAdd(e) {
+            zoneRequest("/add", e.detail.data.value);
+        }
+
+        function onRemove(e) {
+            zoneRequest("/remove", e.detail.data.value);
+        }
+
+        var zoneInput = document.querySelector("#zones");
+
+        var tagify = new Tagify(zoneInput, {
+            enforceWhitelist: true,
+            whitelist: JSON.parse(document.querySelector("#whitelist").textContent),
+            dropdown: {
+                enabled: 1, // suggest tags after a single character input
+                position: "text"
+            } // map tags
+        });
+        tagify.on("add", onAdd);
+        tagify.on("remove", onRemove);
+
+        // add a class to Tagify's input element
+        tagify.DOM.input.classList.add('form-control');
+        // re-place Tagify's input element outside of the  element (tagify.DOM.scope), just before it
+
+    });
+</script>
+<script th:replace="fragments :: ajax-csrf-header"></script>
+</body>
+</html>
