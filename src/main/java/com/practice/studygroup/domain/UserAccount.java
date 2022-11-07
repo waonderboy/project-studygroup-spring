@@ -64,6 +64,10 @@ public class UserAccount {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "userAccount", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserAccountTag> tags = new HashSet<>();
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "userAccount", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserAccountZone> zones = new HashSet<>();
+
+
     protected UserAccount() {
     }
 
@@ -121,5 +125,7 @@ public class UserAccount {
     }
 
 
-
+    public void setZone(UserAccountZone userAccountZone) {
+        this.zones.add(userAccountZone);
+    }
 }
