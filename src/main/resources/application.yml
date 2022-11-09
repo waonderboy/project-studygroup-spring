@@ -16,3 +16,4 @@ logging:
     org.hibernate.type: trace
     org.hibernate.type.descriptor.sql.BasicBinder: trace
 
+app.host: http://localhost:8080
