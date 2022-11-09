@@ -1,5 +1,6 @@
 package com.practice.studygroup.service;
 
+import com.practice.studygroup.config.AppProperties;
 import com.practice.studygroup.domain.*;
 import com.practice.studygroup.dto.TagDto;
 import com.practice.studygroup.dto.ZoneDto;
@@ -9,12 +10,16 @@ import com.practice.studygroup.dto.request.ZoneForm;
 import com.practice.studygroup.dto.response.ProfileForm;
 import com.practice.studygroup.dto.security.CommonUserPrincipal;
 import com.practice.studygroup.dto.UserAccountDto;
+import com.practice.studygroup.mail.EmailMessage;
+import com.practice.studygroup.mail.EmailService;
 import com.practice.studygroup.repository.TagRepository;
 import com.practice.studygroup.repository.UserAccountRepository;
 import com.practice.studygroup.repository.ZoneRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -22,14 +27,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -37,8 +46,10 @@ public class UserAccountService {
     private final UserAccountRepository userAccountRepository;
     private final TagRepository tagRepository;
     private final ZoneRepository zoneRepository;
-    private final JavaMailSender javaMailSender;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final TemplateEngine templateEngine;
+    private final AppProperties appProperties;
 
     @Transactional
     public void processNewUserAccount(UserAccountDto userAccountdto) {
@@ -61,13 +72,23 @@ public class UserAccountService {
         UserAccount userAccount = userAccountRepository.findByEmail(email).orElse(null);
         userAccount.generateEmailCheckToken();
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(userAccount.getEmail());
-        mailMessage.setSubject("스터디그룹, 회원 가입 인증");
-        mailMessage.setText(url + userAccount.getEmailCheckToken()
+        Context context = new Context();
+        context.setVariable("link", url + userAccount.getEmailCheckToken()
                 + "&email=" + userAccount.getEmail());
+        context.setVariable("nickname", userAccount.getNickname());
+        context.setVariable("linkName", "이메일 인증하기");
+        context.setVariable("message", "스터디그룹 서비스를 사용하려면 아래 링크를 클릭하세요.");
+        context.setVariable("host", appProperties.getHost());
 
-        javaMailSender.send(mailMessage); //TODO : SMTP로 구현필요
+        String message = templateEngine.process("mail/simple-link", context);
+
+        EmailMessage emailMessage = EmailMessage.builder()
+                .to(userAccount.getEmail())
+                .subject("스터디그룹, 회원 가입 인증")
+                .message(message)
+                .build();
+
+        emailService.sendEmail(emailMessage);
     }
 
     public CommonUserPrincipal loginAfterModifyInfo(String email) {
