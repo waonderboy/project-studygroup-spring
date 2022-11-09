@@ -10,6 +10,8 @@ import com.practice.studygroup.dto.ZoneDto;
 import com.practice.studygroup.dto.request.PasswordForm;
 import com.practice.studygroup.dto.request.TagForm;
 import com.practice.studygroup.dto.request.ZoneForm;
+import com.practice.studygroup.mail.EmailService;
+import com.practice.studygroup.mail.HtmlEmailService;
 import com.practice.studygroup.repository.TagRepository;
 import com.practice.studygroup.repository.UserAccountRepository;
 import com.practice.studygroup.repository.ZoneRepository;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -67,6 +70,7 @@ class SettingsControllerTest {
     private ZoneRepository zoneRepository;
     @Autowired
     private ZoneService zoneService;
+
 
     @AfterEach
     void afterEach() {

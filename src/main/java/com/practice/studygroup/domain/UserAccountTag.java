@@ -9,16 +9,16 @@ import javax.persistence.*;
 @Entity @AllArgsConstructor
 public class UserAccountTag {
 
-    @Column(name = "USERACCOUNT_TAG_ID")
+    @Column(name = "useraccount_tag_id")
     @Id @GeneratedValue
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "USERACCOUNT_ID")
+    @JoinColumn(name = "useraccount_id")
     private UserAccount userAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TAG_ID")
+    @JoinColumn(name = "tag_id")
     private Tag tag;
 
     protected UserAccountTag() {}

@@ -12,7 +12,7 @@
 <body>
 <header th:replace="header :: header" />
 <div class="alert alert-warning" role="alert" th:if="${account != null && !account.emailVerified}">
-  스터디 그룹 가입을 완료하려면 <a href="#" th:href="@{/check-email}" class="alert-link">계정 이메일을 통해 인증</a>하세요.
+  스터디 그룹 가입을 완료하려면 <a href="#" th:href="@{/check-email-token}" class="alert-link">계정 이메일을 통해 인증</a>하세요.
 </div>
 
 <footer th:replace="footer :: footer" />
