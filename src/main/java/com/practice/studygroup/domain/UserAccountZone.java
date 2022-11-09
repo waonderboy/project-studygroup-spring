@@ -13,17 +13,17 @@ import javax.persistence.*;
 @Entity
 public class UserAccountZone {
 
-    @Column(name = "USERACCOUNT_ZONE_ID")
+    @Column(name = "useraccount_zone_id")
     @Id
     @GeneratedValue
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "USERACCOUNT_ID")
+    @JoinColumn(name = "useraccount_id")
     private UserAccount userAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ZONE_ID")
+    @JoinColumn(name = "zone_id")
     private Zone zone;
 
     protected UserAccountZone() {}
