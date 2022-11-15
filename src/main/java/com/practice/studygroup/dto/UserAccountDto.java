@@ -14,6 +14,7 @@ import java.util.Collection;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserAccountDto{
+    private Long id;
     private String email;
     private String password;
     private String nickname;
@@ -33,6 +34,7 @@ public class UserAccountDto{
 
     public static UserAccountDto from(UserAccount entity) {
         return UserAccountDto.builder()
+                .id(entity.getId())
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .nickname(entity.getNickname())

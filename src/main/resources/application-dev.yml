@@ -20,7 +20,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: waonderboy@gmail.com
-    password: jgpcrwjntforrqmk
+    password: npdgsoyndqlfftfm
     properties:
       mail.smtp.auth: true
       mail.smtp.timeout: 5000

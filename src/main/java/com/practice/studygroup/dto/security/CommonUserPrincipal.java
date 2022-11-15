@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Getter @Setter @Builder
 @AllArgsConstructor
 public class CommonUserPrincipal implements UserDetails {
-
+    private Long id;
     private String email;
     private String password;
     private String nickname;
@@ -29,9 +29,10 @@ public class CommonUserPrincipal implements UserDetails {
     private String profileImage;
     private Collection<? extends GrantedAuthority> authorities;
 
-    private static CommonUserPrincipal of(String email, String password, String nickname, String profileImage, boolean emailVerified) {
+    private static CommonUserPrincipal of(Long id, String email, String password, String nickname, String profileImage, boolean emailVerified) {
         Set<RoleType> roleTypes = Set.of(RoleType.USER);
         return CommonUserPrincipal.builder()
+                .id(id)
                 .email(email)
                 .password(password)
                 .authorities(roleTypes.stream()
@@ -46,6 +47,7 @@ public class CommonUserPrincipal implements UserDetails {
 
     public static CommonUserPrincipal from(UserAccount entity) {
         return CommonUserPrincipal.of(
+                entity.getId(),
                 entity.getEmail(),
                 entity.getPassword(),
                 entity.getNickname(),
@@ -55,7 +57,16 @@ public class CommonUserPrincipal implements UserDetails {
     }
 
     public static CommonUserPrincipal from(UserAccountDto dto){
-        return CommonUserPrincipal.of(dto.getEmail(), dto.getPassword(), dto.getNickname(), dto.getProfileImage(), dto.isEmailVerified());
+        return CommonUserPrincipal.of(dto.getId(), dto.getEmail(), dto.getPassword(), dto.getNickname(), dto.getProfileImage(), dto.isEmailVerified());
+    }
+
+    public UserAccountDto toDto() {
+        return UserAccountDto.builder()
+                .id(id)
+                .nickname(nickname)
+                .password(password)
+                .email(email)
+                .build();
     }
 
     @Override
