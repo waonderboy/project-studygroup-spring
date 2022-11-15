@@ -34,7 +34,7 @@
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link btn btn-outline-light me-2" th:href="@{/notification}"><i class="fa fa-plus" aria-hidden="true"> 스터디 개설</i></a>
+                    <a class="nav-link btn btn-outline-light me-2" th:href="@{/new-study}"><i class="fa fa-plus" aria-hidden="true"> 스터디 개설</i></a>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
                     <a class="nav-link" th:href="@{/sign-in}">Login</a>
